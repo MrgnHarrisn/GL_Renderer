@@ -1,0 +1,9 @@
+/bin
+/obj
+*.vcxproj
+*.vcxproj.user
+Makefile
+.make
+/.vs
+*.make
+*.filters
