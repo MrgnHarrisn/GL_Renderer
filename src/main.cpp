@@ -10,9 +10,14 @@ void processInput(GLFWwindow *window);
 
 // vertices of a triangle
 float vertices[] = {
-    -0.5f, -0.5f, 0.0f,
-     0.5f, -0.5f, 0.0f,
-     0.0f,  0.5f, 0.0f
+     0.5f,  0.5f, 0.0f,  // top right
+     0.5f, -0.5f, 0.0f,  // bottom right
+    -0.5f, -0.5f, 0.0f,  // bottom left
+    -0.5f,  0.5f, 0.0f   // top left 
+};
+unsigned int indices[] = {  // note that we start from 0!
+    0, 1, 3,   // first triangle
+    1, 2, 3    // second triangle
 };
 
 int main()
@@ -93,20 +98,26 @@ int main()
     glDeleteShader(fragmentShader);
 
     // VBO and VAO
-    unsigned int VBO, VAO;
+    unsigned int VBO, VAO, EBO;
 
     // generate the VAO and VBO
     glGenVertexArrays(1, &VAO);
     glGenBuffers(1, &VBO);
+    glGenBuffers(1, &EBO);
     
     // we are using 'this' VAO
     glBindVertexArray(VAO);
+
+    // add the vertices into VBO
     glBindBuffer(GL_ARRAY_BUFFER, VBO);
-    // add the vertices into memory
     glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
-    // how to read the vertices
+
+    // add the indices into EBO
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
+    
+    // how to read the vertices and enable the attribute
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(float) * 3, (void*)0);
-    // enable the attribute
     glEnableVertexAttribArray(0);
 
     // Unbind them incase we want to use something else
@@ -130,7 +141,9 @@ int main()
         // -------------------------------------------------------------------------------
         glUseProgram(shaderProgram);
         glBindVertexArray(VAO);
-        glDrawArrays(GL_TRIANGLES, 0, 3);
+        glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
+        glBindVertexArray(0);
+        // glDrawArrays(GL_TRIANGLES, 0, 3);
         glfwSwapBuffers(window);
         glfwPollEvents();
     }
