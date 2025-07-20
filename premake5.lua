@@ -37,7 +37,7 @@ project "GLRenderer"
     links { "GLFW", "GLM", "GLAD", "ImGui" }
 
     filter "system:linux"
-        links { "d1", "pthread" }
+        links { "dl", "pthread" }
         defines { "_X11" }
     
     filter "system:windows"
