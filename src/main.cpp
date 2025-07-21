@@ -2,24 +2,34 @@
 #include <GLFW/glfw3.h>
 
 #include "globals.h"
+#include "Shader.h"
 
 #include <iostream>
 
 void framebuffer_size_callback(GLFWwindow* window, int width, int height);
 void processInput(GLFWwindow *window);
 
-// vertices of a triangle
+
+// vertices of triangle
 float vertices[] = {
-     0.5f,  0.5f, 0.0f,  // top right
-     0.5f, -0.5f, 0.0f,  // bottom right
-    -0.5f, -0.5f, 0.0f,  // bottom left
-    -0.5f,  0.5f, 0.0f   // top left 
+    // positions         // colors
+     0.5f, -0.5f, 0.0f,  1.0f, 0.0f, 0.0f,   // bottom right
+    -0.5f, -0.5f, 0.0f,  0.0f, 1.0f, 0.0f,   // bottom left
+     0.0f,  0.5f, 0.0f,  0.0f, 0.0f, 1.0f    // top 
 };
 
-unsigned int indices[] = {  // note that we start from 0!
-    0, 1, 3,   // first triangle
-    1, 2, 3    // second triangle
-};
+// vertices of a square
+//float vertices[] = {
+//     0.5f,  0.5f, 0.0f,  // top right
+//     0.5f, -0.5f, 0.0f,  // bottom right
+//    -0.5f, -0.5f, 0.0f,  // bottom left
+//    -0.5f,  0.5f, 0.0f   // top left 
+//};
+//
+//unsigned int indices[] = {  // note that we start from 0!
+//    0, 1, 3,   // first triangle
+//    1, 2, 3    // second triangle
+//};
 
 int main()
 {
@@ -83,28 +93,15 @@ int main()
     }
 
     // link shader program
-    unsigned int shaderProgram;
-    shaderProgram = glCreateProgram();
-    glAttachShader(shaderProgram, vertexShader);
-    glAttachShader(shaderProgram, fragmentShader);
-    glLinkProgram(shaderProgram);
-
-    glGetProgramiv(shaderProgram, GL_LINK_STATUS, &success);
-    if (!success) {
-        glGetProgramInfoLog(shaderProgram, 512, NULL, infoLog);
-        std::cout << infoLog << std::endl;
-    }
-
-    glDeleteShader(vertexShader);
-    glDeleteShader(fragmentShader);
+    Shader shader("res/shader.vert", "res/shader.frag");
 
     // VBO and VAO
-    unsigned int VBO, VAO, EBO;
+    unsigned int VBO, VAO/*, EBO*/;
 
     // generate the VAO and VBO
     glGenVertexArrays(1, &VAO);
     glGenBuffers(1, &VBO);
-    glGenBuffers(1, &EBO);
+    // glGenBuffers(1, &EBO);
     
     // we are using 'this' VAO
     glBindVertexArray(VAO);
@@ -114,12 +111,15 @@ int main()
     glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
 
     // add the indices into EBO
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
-    glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
+    /*glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);*/
     
     // how to read the vertices and enable the attribute
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(float) * 3, (void*)0);
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(float) * 6, (void*)0);
     glEnableVertexAttribArray(0);
+
+    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(float) * 6, (void*)(3 * sizeof(float)));
+    glEnableVertexAttribArray(1);
 
     // Unbind them incase we want to use something else
     glBindBuffer(GL_ARRAY_BUFFER, 0);
@@ -140,11 +140,18 @@ int main()
 
         // glfw: swap buffers and poll IO events (keys pressed/released, mouse moved etc.)
         // -------------------------------------------------------------------------------
-        glUseProgram(shaderProgram);
+        /*float timeValue = (float)glfwGetTime();
+        float greenValue = (sin(timeValue) / 2.f) + 0.5f;
+        int vertexColorLocation = glGetUniformLocation(shaderProgram, "ourColor");*/
+
+        shader.use();
+        /*glUniform4f(vertexColorLocation, 0.0f, greenValue, 0.0f, 1.0f);*/
+
         glBindVertexArray(VAO);
-        glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
+        // glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
+        glDrawArrays(GL_TRIANGLES, 0, 3);
         glBindVertexArray(0);
-        // glDrawArrays(GL_TRIANGLES, 0, 3);
+        
         glfwSwapBuffers(window);
         glfwPollEvents();
     }
@@ -152,7 +159,7 @@ int main()
     // glfw: terminate, clearing all previously allocated GLFW resources.
     // ------------------------------------------------------------------
     glfwTerminate();
-    glDeleteProgram(shaderProgram);
+    // glDeleteProgram(shaderProgram);
     glDeleteBuffers(1, &VAO);
     glDeleteBuffers(1, &VBO);
     return 0;
