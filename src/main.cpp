@@ -203,20 +203,24 @@ int main()
 
     stbi_image_free(data);
 
-    // square transform
-    glm::mat4 model = glm::mat3(1.f);
-    model = glm::rotate(model, glm::radians(-55.f), glm::vec3(1.0, 0.0, 0.0));
-
-    glm::mat4 view = glm::mat4(1.f);
-    view = glm::translate(view, glm::vec3(0.f, 0.f, -3.f));
-
-    glm::mat4 projection;
-    projection = glm::perspective(glm::radians(45.0f), 800.f / 800.f, 0.1f, 100.0f);
-
     float last_frame = glfwGetTime();
 
     glEnable(GL_DEPTH_TEST);
 
+    glm::vec3 cubePositions[] = {
+        glm::vec3(0.0f,  0.0f,  0.0f),
+        glm::vec3(2.0f,  5.0f, -15.0f),
+        glm::vec3(-1.5f, -2.2f, -2.5f),
+        glm::vec3(-3.8f, -2.0f, -12.3f),
+        glm::vec3(2.4f, -0.4f, -3.5f),
+        glm::vec3(-1.7f,  3.0f, -7.5f),
+        glm::vec3(1.3f, -2.0f, -2.5f),
+        glm::vec3(1.5f,  2.0f, -2.5f),
+        glm::vec3(1.5f,  0.2f, -1.5f),
+        glm::vec3(-1.3f,  1.0f, -1.5f)
+    };
+
+    float angle = 0;
 
     // render loop
     // -----------
@@ -236,19 +240,17 @@ int main()
         last_frame = current_frame;
 
         float rotation_speed = 5;
+
+        glm::mat4 projection;
+        projection = glm::perspective(glm::radians(45.0f), (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.1f, 100.0f);
+
+        glm::mat4 view = glm::mat4(1.f);
+        view = glm::translate(view, glm::vec3(0.f, 0.f, -3.f));
         
         shader.use();
 
-        model = glm::rotate(model, delta * glm::radians(50.0f), glm::vec3(0.5f, 1.0f, 0.0f));
-
-        unsigned int modelLoc = glGetUniformLocation(shader.ID, "model");
-        glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
-
-        unsigned int viewLoc = glGetUniformLocation(shader.ID, "view");
-        glUniformMatrix4fv(viewLoc, 1, GL_FALSE, glm::value_ptr(view));
-
-        unsigned int projLoc = glGetUniformLocation(shader.ID, "projection");
-        glUniformMatrix4fv(projLoc, 1, GL_FALSE, glm::value_ptr(projection));
+        shader.set_mat4("view", view);
+        shader.set_mat4("projection", projection);
 
         glActiveTexture(GL_TEXTURE0);
         glBindTexture(GL_TEXTURE_2D, texture1);
@@ -261,6 +263,18 @@ int main()
         shader.set_int("texture2", 1);
 
         glBindVertexArray(VAO);
+
+        for (unsigned int i = 0; i < 10; i++)
+        {
+            glm::mat4 model = glm::mat4(1.0f);
+            model = glm::translate(model, cubePositions[i]);
+            angle += delta * rotation_speed;
+            model = glm::rotate(model, glm::radians(angle), glm::vec3(1.0f, 1.f, 1.f));
+            shader.set_mat4("model", model);
+
+            glDrawArrays(GL_TRIANGLES, 0, 36);
+        }
+
         glDrawArrays(GL_TRIANGLES, 0, 36);
         
         glfwSwapBuffers(window);

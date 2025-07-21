@@ -2,6 +2,8 @@
 
 #include <glad/glad.h> // include glad to get all the required OpenGL headers
 
+#include <glm/mat4x4.hpp>
+
 #include <string>
 #include <fstream>
 #include <sstream>
@@ -22,6 +24,7 @@ public:
     void set_bool(const std::string& name, bool value) const;
     void set_int(const std::string& name, int value) const;
     void set_float(const std::string& name, float value) const;
+    void set_mat4(const std::string& name, glm::mat4& value);
 private:
     void check_error(unsigned int to_check, GLenum status_to_check, const char* shader_type);
 };
