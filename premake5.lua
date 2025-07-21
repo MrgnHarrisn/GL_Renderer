@@ -34,7 +34,7 @@ project "GLRenderer"
 
     files { "src/**.cpp", "include/**.h" }
 
-    links { "GLFW", "GLM", "GLAD", "ImGui" }
+    links { "GLFW", "GLM", "GLAD", "ImGui", "stb_image" }
 
     filter "system:linux"
         links { "dl", "pthread" }
@@ -47,3 +47,4 @@ include "vendor/glfw.lua"
 include "vendor/glad.lua"
 include "vendor/glm.lua"
 include "vendor/imgui.lua"
+include "vendor/stb_image.lua"
