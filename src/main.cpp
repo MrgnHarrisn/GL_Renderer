@@ -2,6 +2,11 @@
 #include <GLFW/glfw3.h>
 #include <stb_image.h>
 
+// math
+#include <glm/glm.hpp>
+#include <glm/gtc/matrix_transform.hpp>
+#include <glm/gtc/type_ptr.hpp>
+
 #include "globals.h"
 #include "Shader.h"
 
@@ -150,6 +155,10 @@ int main()
 
     stbi_image_free(data);
 
+    // square transform
+    glm::mat4 trans = glm::mat4(1.0f);
+
+    float last_frame = glfwGetTime();
 
     // render loop
     // -----------
@@ -164,7 +173,19 @@ int main()
         glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT);
 
+        float current_frame = glfwGetTime();
+        float delta = current_frame - last_frame;
+        last_frame = current_frame;
+
+        float rotation_speed = 5;
+
+        // update the square's transform to rotate based on delta time
+        trans = glm::rotate(trans, glm::radians(rotation_speed * delta), glm::vec3(0.0, 0.0, 1.0));
+        
         shader.use();
+
+        unsigned int transformLoc = glGetUniformLocation(shader.ID, "transform");
+        glUniformMatrix4fv(transformLoc, 1, GL_FALSE, glm::value_ptr(trans));
 
         glActiveTexture(GL_TEXTURE0);
         glBindTexture(GL_TEXTURE_2D, texture1);
