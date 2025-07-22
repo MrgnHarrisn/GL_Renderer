@@ -8,4 +8,4 @@ This a simple project for rendering with OpenGL
 1) Install premake
 2) run either <br/>
 `for windows:   premake5 vs2022`<br/>
-`for linux:     premake5 gmake2`
+`for linux:     premake5 gmake`
