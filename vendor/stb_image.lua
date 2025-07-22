@@ -1,6 +1,6 @@
 project "stb_image"
     kind "StaticLib"
-    language "C"
+    language "C" 
     staticruntime "On"
     architecture "x86_64"
 
@@ -9,14 +9,12 @@ project "stb_image"
     
     includedirs { 
         "stb/",
-        "../include",
-        "../vendor/GLAD/include"
+        "glad/include",
+        "../include"
     }
 
-
-    files { "../include/stb_image_wrapper.h" }
+    files { "stb/stb_image_impl.cpp" }
     
-
     filter "configurations:Debug"
         symbols "On"
         runtime "Debug"
