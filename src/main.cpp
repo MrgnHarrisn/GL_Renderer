@@ -70,6 +70,9 @@ float last_x            = (float)SCR_WIDTH / 2.f;
 float last_y            = (float)SCR_HEIGHT / 2.f;
 bool mouse_first        = true;
 
+float camera_pitch = 0.0f;
+float camera_yaw = -90.0f;
+
 // vertices of triangle
 //float vertices[] = {
 //    // positions          // colors           // texture coords
@@ -341,25 +344,33 @@ void scroll_callback(GLFWwindow* window, double xd, double yd)
 
 void mouse_callback(GLFWwindow* window, double xpos, double ypos)
 {
-
     if (mouse_first) {
         last_x = xpos;
         last_y = ypos;
         mouse_first = false;
     }
 
-    float xd    = xpos - last_x;
-    float yd    = last_y - ypos;
-    last_x      = xpos;
-    last_y      = ypos;
+    float xd = xpos - last_x;
+    float yd = last_y - ypos; // Reversed Y
+    last_x = xpos;
+    last_y = ypos;
 
-    const float sense = 1.f;
-    xd          *= sense;
-    yd          *= sense;
+    const float sensitivity = 0.5f;
+    camera_yaw += xd * sensitivity;
+    camera_pitch += yd * sensitivity;
 
-    camera.transform.rotate(glm::vec3(0, 1, 0), glm::radians(-xd));
-    camera.transform.rotate(camera.transform.right, glm::radians(-yd));
+    // Clamp vertical rotation
+    camera_pitch = glm::clamp(camera_pitch, -89.0f, 89.0f);
 
+    // Convert Euler angles to direction vector
+    glm::vec3 direction;
+    direction.x = cos(glm::radians(camera_yaw)) * cos(glm::radians(camera_pitch));
+    direction.y = sin(glm::radians(camera_pitch));
+    direction.z = sin(glm::radians(camera_yaw)) * cos(glm::radians(camera_pitch));
 
-
+    // Update camera orientation using look_at
+    camera.transform.look_at(
+        camera.transform.position + glm::normalize(direction),
+        glm::vec3(0.0f, 1.0f, 0.0f)
+    );
 }
