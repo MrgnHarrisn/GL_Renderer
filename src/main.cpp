@@ -9,15 +9,16 @@
 
 #include "globals.h"
 #include "Shader.h"
+#include "Camera.h"
 
 #include <iostream>
 
 void framebuffer_size_callback(GLFWwindow* window, int width, int height);
+void mouse_callback(GLFWwindow* window, double xpos, double ypos);
+void scroll_callback(GLFWwindow* window, double xd, double yd);
 void processInput(GLFWwindow *window);
 
-
-
-
+// cube
 float vertices[] = {
     -0.5f, -0.5f, -0.5f,  0.0f, 0.0f,
      0.5f, -0.5f, -0.5f,  1.0f, 0.0f,
@@ -62,7 +63,12 @@ float vertices[] = {
     -0.5f,  0.5f, -0.5f,  0.0f, 1.0f
 };
 
+float delta_time        = 0.0f;
 
+glr::Camera camera(glm::vec3(0.f, 0.f, -3.f));
+float last_x            = (float)SCR_WIDTH / 2.f;
+float last_y            = (float)SCR_HEIGHT / 2.f;
+bool mouse_first        = true;
 
 // vertices of triangle
 //float vertices[] = {
@@ -110,6 +116,9 @@ int main()
     }
     glfwMakeContextCurrent(window);
     glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
+    glfwSetScrollCallback(window, scroll_callback);
+    glfwSetCursorPosCallback(window, mouse_callback);
+    glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
 
     // glad: load all OpenGL function pointers
     // ---------------------------------------
@@ -222,6 +231,8 @@ int main()
 
     float angle = 0;
 
+    
+
     // render loop
     // -----------
     while (!glfwWindowShouldClose(window))
@@ -236,18 +247,19 @@ int main()
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
         float current_frame = glfwGetTime();
-        float delta = current_frame - last_frame;
+        delta_time = current_frame - last_frame;
         last_frame = current_frame;
 
         float rotation_speed = 5;
 
-        glm::mat4 projection;
-        projection = glm::perspective(glm::radians(45.0f), (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.1f, 100.0f);
+        camera.update();
 
-        glm::mat4 view = glm::mat4(1.f);
-        view = glm::translate(view, glm::vec3(0.f, 0.f, -3.f));
+        glm::mat4 projection;
+        projection = glm::perspective(glm::radians(camera.FOV), (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.1f, 100.0f);
         
         shader.use();
+        glm::mat4 view;
+        view = camera.get_view_transform();
 
         shader.set_mat4("view", view);
         shader.set_mat4("projection", projection);
@@ -264,18 +276,18 @@ int main()
 
         glBindVertexArray(VAO);
 
+        
+
         for (unsigned int i = 0; i < 10; i++)
         {
             glm::mat4 model = glm::mat4(1.0f);
             model = glm::translate(model, cubePositions[i]);
-            angle += delta * rotation_speed;
+            angle += delta_time * rotation_speed;
             model = glm::rotate(model, glm::radians(angle), glm::vec3(1.0f, 1.f, 1.f));
             shader.set_mat4("model", model);
 
             glDrawArrays(GL_TRIANGLES, 0, 36);
         }
-
-        glDrawArrays(GL_TRIANGLES, 0, 36);
         
         glfwSwapBuffers(window);
         glfwPollEvents();
@@ -297,6 +309,19 @@ void processInput(GLFWwindow *window)
 {
     if(glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
         glfwSetWindowShouldClose(window, true);
+    const float cameraSpeed = 5.f * delta_time;
+    if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
+        camera.transform.position += cameraSpeed * camera.transform.forward;
+    if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
+        camera.transform.position -= cameraSpeed * camera.transform.forward;
+    if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
+        camera.transform.position += cameraSpeed * camera.transform.right;
+    if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
+        camera.transform.position -= cameraSpeed * camera.transform.right;
+    if (glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS)
+        camera.transform.position += cameraSpeed * camera.transform.up;
+    if (glfwGetKey(window, GLFW_KEY_LEFT_CONTROL) == GLFW_PRESS)
+        camera.transform.position -= cameraSpeed * camera.transform.up;
 }
 
 // glfw: whenever the window size changed (by OS or user resize) this callback function executes
@@ -308,3 +333,33 @@ void framebuffer_size_callback(GLFWwindow* window, int width, int height)
     glViewport(0, 0, width, height);
 }
 
+void scroll_callback(GLFWwindow* window, double xd, double yd)
+{
+    camera.FOV -= (float)yd;
+    camera.FOV = glm::clamp(camera.FOV, 1.f, 90.f);
+}
+
+void mouse_callback(GLFWwindow* window, double xpos, double ypos)
+{
+
+    if (mouse_first) {
+        last_x = xpos;
+        last_y = ypos;
+        mouse_first = false;
+    }
+
+    float xd    = xpos - last_x;
+    float yd    = last_y - ypos;
+    last_x      = xpos;
+    last_y      = ypos;
+
+    const float sense = 1.f;
+    xd          *= sense;
+    yd          *= sense;
+
+    camera.transform.rotate(glm::vec3(0, 1, 0), glm::radians(-xd));
+    camera.transform.rotate(camera.transform.right, glm::radians(-yd));
+
+
+
+}
