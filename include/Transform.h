@@ -11,7 +11,7 @@ namespace glr
     {
     public:
         glm::vec3 position = glm::vec3(0.0f);
-        glm::quat orientation = glm::quat(1.0f, 0.0f, 0.0f, 0.0f); // Identity quaternion cause fuck me apparently
+        glm::quat orientation = glm::quat(1.0f, 0.0f, 0.0f, 0.0f);
 
         // Direction vectors
         glm::vec3 forward = glm::vec3(0.0f, 0.0f, 1.0f);
