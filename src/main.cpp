@@ -65,31 +65,17 @@ float vertices[] = {
 
 float delta_time        = 0.0f;
 
-glr::Camera camera(glm::vec3(0.f, 0.f, -3.f));
+glr::Camera camera(glm::vec3(0.f, 0.f, 3.f));
 float last_x            = (float)SCR_WIDTH / 2.f;
 float last_y            = (float)SCR_HEIGHT / 2.f;
 bool mouse_first        = true;
 
-float camera_pitch = 0.0f;
-float camera_yaw = -90.0f;
+float camera_pitch      = 0.0f;
+float camera_yaw        = -90.0f;
 
-// vertices of triangle
-//float vertices[] = {
-//    // positions          // colors           // texture coords
-//     0.5f,  0.5f, 0.0f,   1.0f, 0.0f, 0.0f,   1.0f, 1.0f,   // top right
-//     0.5f, -0.5f, 0.0f,   0.0f, 1.0f, 0.0f,   1.0f, 0.0f,   // bottom right
-//    -0.5f, -0.5f, 0.0f,   0.0f, 0.0f, 1.0f,   0.0f, 0.0f,   // bottom left
-//    -0.5f,  0.5f, 0.0f,   1.0f, 1.0f, 0.0f,   0.0f, 1.0f    // top left 
-//};
+glm::vec3 lightColor(1.0f, 1.0f, 1.0f);
+glm::vec3 toyColor(1.0f, 0.5f, 0.31f);
 
-// vertices of a square
-//float vertices[] = {
-//     0.5f,  0.5f, 0.0f,  // top right
-//     0.5f, -0.5f, 0.0f,  // bottom right
-//    -0.5f, -0.5f, 0.0f,  // bottom left
-//    -0.5f,  0.5f, 0.0f   // top left 
-//};
-//
 unsigned int indices[] = {  // note that we start from 0!
     0, 1, 3,   // first triangle
     1, 2, 3    // second triangle
@@ -133,7 +119,10 @@ int main()
 
     stbi_set_flip_vertically_on_load(true);
 
-    Shader shader("res/shaders/shader.vert", "res/shaders/shader.frag");
+    Shader light_shader("res/shaders/light.vert", "res/shaders/light.frag");
+    Shader normal_shader("res/shaders/light.vert", "res/shaders/light.frag");
+
+    Shader* shader = &light_shader;
 
     // VBO and VAO
     unsigned int VBO, VAO, EBO;
@@ -166,6 +155,18 @@ int main()
 
     // Unbind them incase we want to use something else
     glBindBuffer(GL_ARRAY_BUFFER, 0);
+    
+
+    unsigned int lightVAO;
+    glGenVertexArrays(1, &lightVAO);
+
+    glBindVertexArray(lightVAO);
+    glBindBuffer(GL_ARRAY_BUFFER, VBO);
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)0);
+    glEnableVertexAttribArray(0);
+    glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)(3 * sizeof(float)));
+    glEnableVertexAttribArray(1);
+
     glBindVertexArray(0);
 
     // Loading in a texture
@@ -221,7 +222,7 @@ int main()
 
     glm::vec3 cubePositions[] = {
         glm::vec3(0.0f,  0.0f,  0.0f),
-        glm::vec3(2.0f,  5.0f, -15.0f),
+        glm::vec3(2.0f,  2.0f, -2.0f),
         glm::vec3(-1.5f, -2.2f, -2.5f),
         glm::vec3(-3.8f, -2.0f, -12.3f),
         glm::vec3(2.4f, -0.4f, -3.5f),
@@ -260,12 +261,12 @@ int main()
         glm::mat4 projection;
         projection = glm::perspective(glm::radians(camera.FOV), (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.1f, 100.0f);
         
-        shader.use();
+        shader->use();
         glm::mat4 view;
-        view = camera.get_view_transform();
+        view = camera.getTransformMatrix();
 
-        shader.set_mat4("view", view);
-        shader.set_mat4("projection", projection);
+        shader->setMat4("view", view);
+        shader->setMat4("projection", projection);
 
         glActiveTexture(GL_TEXTURE0);
         glBindTexture(GL_TEXTURE_2D, texture1);
@@ -274,20 +275,32 @@ int main()
         
 
         // need to set the index, NOT the texture ID
-        shader.set_int("texture1", 0);
-        shader.set_int("texture2", 1);
+        shader->setInt("texture1", 0);
+        shader->setInt("texture2", 1);
 
         glBindVertexArray(VAO);
 
         
 
-        for (unsigned int i = 0; i < 10; i++)
+        for (unsigned int i = 0; i < 2; i++)
         {
-            glm::mat4 model = glm::mat4(1.0f);
-            model = glm::translate(model, cubePositions[i]);
-            angle += delta_time * rotation_speed;
-            model = glm::rotate(model, glm::radians(angle), glm::vec3(1.0f, 1.f, 1.f));
-            shader.set_mat4("model", model);
+            bool is_light = i == 1;
+
+            if (is_light) {
+                glm::mat4 model = glm::mat4(1.0f);
+                model = glm::translate(model, cubePositions[i]);
+                model = glm::scale(model, glm::vec3(0.5));
+                // angle += delta_time * rotation_speed;
+                // model = glm::rotate(model, glm::radians(angle), glm::vec3(1.0f, 1.f, 1.f));
+                shader->setMat4("model", model);
+            }
+            else {
+                glm::mat4 model = glm::mat4(1.0f);
+                model = glm::translate(model, cubePositions[i]);
+                // angle += delta_time * rotation_speed;
+                // model = glm::rotate(model, glm::radians(angle), glm::vec3(1.0f, 1.f, 1.f));
+                shader->setMat4("model", model);
+            }
 
             glDrawArrays(GL_TRIANGLES, 0, 36);
         }
@@ -369,7 +382,8 @@ void mouse_callback(GLFWwindow* window, double xpos, double ypos)
     direction.z = sin(glm::radians(camera_yaw)) * cos(glm::radians(camera_pitch));
 
     // Update camera orientation using look_at
-    camera.transform.look_at(
+
+    camera.transform.lookAt(
         camera.transform.position + glm::normalize(direction),
         glm::vec3(0.0f, 1.0f, 0.0f)
     );

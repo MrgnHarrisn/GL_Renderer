@@ -16,8 +16,17 @@ namespace glr
 		/// Set FOV of camera
 		/// </summary>
 		/// <param name="new_fov">new FOV</param>
-		void set_fov(float new_fov);
-		glm::mat4 get_view_transform();
+		void setFov(float new_fov);
+
+		/// <summary>
+		/// Get's the transform matrix
+		/// </summary>
+		/// <returns></returns>
+		glm::mat4 getTransformMatrix();
+
+		/// <summary>
+		/// 
+		/// </summary>
 		void update();
 	private:
 		

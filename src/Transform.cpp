@@ -1,6 +1,6 @@
 #include "Transform.h"
 
-void glr::Transform::look_at(const glm::vec3& target, const glm::vec3& worldUp)
+void glr::Transform::lookAt(const glm::vec3& target, const glm::vec3& worldUp)
 {
     const glm::vec3 toTarget = glm::normalize(target - position);
 
@@ -26,7 +26,7 @@ void glr::Transform::rotate(const glm::vec3& axis, float angle_radians)
     update_vectors();
 }
 
-void glr::Transform::rotate_around(const glm::vec3& point, const glm::vec3& axis, float angle_radians)
+void glr::Transform::rotateAround(const glm::vec3& point, const glm::vec3& axis, float angle_radians)
 {
     // Calculate direction vector from center to position
     glm::vec3 toPosition = position - point;
@@ -43,19 +43,24 @@ void glr::Transform::rotate_around(const glm::vec3& point, const glm::vec3& axis
     update_vectors();
 }
 
-void glr::Transform::set_position(const glm::vec3& new_position)
+void glr::Transform::setScale(glm::vec3& new_scale)
+{
+    scale = new_scale;
+}
+
+void glr::Transform::setPosition(const glm::vec3& new_position)
 {
     position = new_position;
 }
 
-glm::mat4 glr::Transform::get_matrix() const
+glm::mat4 glr::Transform::getMatrix() const
 {
     glm::mat4 translation = glm::translate(glm::mat4(1.0f), position);
     glm::mat4 rotation = glm::mat4_cast(orientation);
     return translation * rotation;
 }
 
-glm::mat4 glr::Transform::get_view_matrix() const
+glm::mat4 glr::Transform::getViewMatrix() const
 {
     return glm::lookAt(position, position + forward, up);
 }

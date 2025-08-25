@@ -21,10 +21,10 @@ public:
     // use/activate the shader
     void use() const;
     // utility uniform functions
-    void set_bool(const std::string& name, bool value) const;
-    void set_int(const std::string& name, int value) const;
-    void set_float(const std::string& name, float value) const;
-    void set_mat4(const std::string& name, glm::mat4& value);
+    void setBool(const std::string& name, bool value) const;
+    void setInt(const std::string& name, int value) const;
+    void setFloat(const std::string& name, float value) const;
+    void setMat4(const std::string& name, glm::mat4& value);
 private:
     void check_error(unsigned int to_check, GLenum status_to_check, const char* shader_type);
 };
