@@ -25,6 +25,7 @@ public:
     void setInt(const std::string& name, int value) const;
     void setFloat(const std::string& name, float value) const;
     void setMat4(const std::string& name, glm::mat4& value);
+    void setVec3(const std::string& name, glm::vec3& value);
 private:
     void check_error(unsigned int to_check, GLenum status_to_check, const char* shader_type);
 };

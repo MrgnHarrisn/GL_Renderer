@@ -99,6 +99,11 @@ void Shader::setMat4(const std::string& name, glm::mat4& value)
     glUniformMatrix4fv(glGetUniformLocation(Shader::ID, name.c_str()), 1, GL_FALSE, glm::value_ptr(value));
 }
 
+void Shader::setVec3(const std::string& name, glm::vec3& value)
+{
+    glUniform3f(glGetUniformLocation(ID, name.c_str()), value.x, value.y, value.z);
+}
+
 void Shader::check_error(unsigned int object, GLenum status_to_check, const char* type) {
     int success;
     char infoLog[512];  // Increased buffer size

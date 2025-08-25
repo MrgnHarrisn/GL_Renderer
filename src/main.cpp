@@ -120,9 +120,7 @@ int main()
     stbi_set_flip_vertically_on_load(true);
 
     Shader light_shader("res/shaders/light.vert", "res/shaders/light.frag");
-    Shader normal_shader("res/shaders/light.vert", "res/shaders/light.frag");
-
-    Shader* shader = &light_shader;
+    Shader normal_shader("res/shaders/shader.vert", "res/shaders/shader.frag");
 
     // VBO and VAO
     unsigned int VBO, VAO, EBO;
@@ -254,57 +252,51 @@ int main()
         delta_time = current_frame - last_frame;
         last_frame = current_frame;
 
-        float rotation_speed = 5;
-
         camera.update();
 
         glm::mat4 projection;
         projection = glm::perspective(glm::radians(camera.FOV), (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.1f, 100.0f);
-        
-        shader->use();
-        glm::mat4 view;
-        view = camera.getTransformMatrix();
 
-        shader->setMat4("view", view);
-        shader->setMat4("projection", projection);
+        glm::mat4 view = camera.getTransformMatrix();
+
+        // Draw the regular object (not the light source)
+        normal_shader.use();
+        normal_shader.setMat4("view", view);
+        normal_shader.setMat4("projection", projection);
+        normal_shader.setVec3("objectColor", toyColor);
+        normal_shader.setVec3("lightColor", lightColor);
+        normal_shader.setVec3("lightPos", cubePositions[1]); // Position of the light source
+        normal_shader.setVec3("viewPos", camera.transform.position); // Camera position
+
+        glm::mat4 model = glm::mat4(1.0f);
+        model = glm::translate(model, cubePositions[0]);
+        normal_shader.setMat4("model", model);
 
         glActiveTexture(GL_TEXTURE0);
         glBindTexture(GL_TEXTURE_2D, texture1);
         glActiveTexture(GL_TEXTURE1);
         glBindTexture(GL_TEXTURE_2D, texture2);
-        
 
-        // need to set the index, NOT the texture ID
-        shader->setInt("texture1", 0);
-        shader->setInt("texture2", 1);
+        normal_shader.setInt("texture1", 0);
+        normal_shader.setInt("texture2", 1);
 
         glBindVertexArray(VAO);
+        glDrawArrays(GL_TRIANGLES, 0, 36);
 
-        
+        // Draw the light source
+        light_shader.use();
+        light_shader.setMat4("view", view);
+        light_shader.setMat4("projection", projection);
+        light_shader.setVec3("lightColor", lightColor);
 
-        for (unsigned int i = 0; i < 2; i++)
-        {
-            bool is_light = i == 1;
+        model = glm::mat4(1.0f);
+        model = glm::translate(model, cubePositions[1]);
+        model = glm::scale(model, glm::vec3(0.2f)); // Make the light source smaller
+        light_shader.setMat4("model", model);
 
-            if (is_light) {
-                glm::mat4 model = glm::mat4(1.0f);
-                model = glm::translate(model, cubePositions[i]);
-                model = glm::scale(model, glm::vec3(0.5));
-                // angle += delta_time * rotation_speed;
-                // model = glm::rotate(model, glm::radians(angle), glm::vec3(1.0f, 1.f, 1.f));
-                shader->setMat4("model", model);
-            }
-            else {
-                glm::mat4 model = glm::mat4(1.0f);
-                model = glm::translate(model, cubePositions[i]);
-                // angle += delta_time * rotation_speed;
-                // model = glm::rotate(model, glm::radians(angle), glm::vec3(1.0f, 1.f, 1.f));
-                shader->setMat4("model", model);
-            }
+        glBindVertexArray(lightVAO);
+        glDrawArrays(GL_TRIANGLES, 0, 36);
 
-            glDrawArrays(GL_TRIANGLES, 0, 36);
-        }
-        
         glfwSwapBuffers(window);
         glfwPollEvents();
     }
